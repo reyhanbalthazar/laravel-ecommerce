@@ -35,24 +35,29 @@ class ProductController extends Controller
         $query = Product::with('category')->active();
 
         // Search
-        if ($request->has('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%')
-                ->orWhere('description', 'like', '%' . $request->search . '%');
-        }
-
-        // Filter by category
-        if ($request->has('category')) {
-            $query->whereHas('category', function ($q) use ($request) {
-                $q->where('slug', $request->category);
+        if ($request->has('search') && !empty($request->search)) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                    ->orWhere('description', 'like', '%' . $search . '%');
             });
         }
 
-        // Filter by price range
-        if ($request->has('min_price')) {
-            $query->where('price', '>=', $request->min_price);
+        // Filter by category - FIXED
+        if ($request->has('category') && !empty($request->category)) {
+            $categorySlug = $request->category;
+            $query->whereHas('category', function ($q) use ($categorySlug) {
+                $q->where('slug', $categorySlug);
+            });
         }
-        if ($request->has('max_price')) {
-            $query->where('price', '<=', $request->max_price);
+
+        // Filter by price range - FIXED
+        if ($request->has('min_price') && !empty($request->min_price)) {
+            $query->where('price', '>=', floatval($request->min_price));
+        }
+
+        if ($request->has('max_price') && !empty($request->max_price)) {
+            $query->where('price', '<=', floatval($request->max_price));
         }
 
         // Sorting

@@ -10,17 +10,21 @@
 </head>
 
 <body class="bg-gray-100">
-    <!-- Simple Navigation -->
     <nav class="bg-white shadow py-4">
         <div class="max-w-6xl mx-auto px-4 flex justify-between items-center">
             <a href="/" class="text-xl font-bold">LaravelStore</a>
             <div class="flex space-x-4">
                 <a href="/products" class="text-gray-600 hover:text-gray-900">Products</a>
-                <a href="/cart" class="text-gray-600 hover:text-gray-900">Cart</a>
+                <a href="/cart" class="text-gray-600 hover:text-gray-900">Cart
+                    <span class="bg-blue-500 text-white rounded-full px-2 py-1 text-xs">
+                        {{ array_sum(array_column(session('cart', []), 'quantity')) }}
+                    </span>
+                </a>
             </div>
         </div>
     </nav>
 
+    <!-- Rest of your cart page remains the same -->
     <div class="max-w-4xl mx-auto py-8 px-4">
         <h1 class="text-3xl font-bold mb-8">Shopping Cart</h1>
 
@@ -32,6 +36,7 @@
 
         @if(count($cart) > 0)
         <div class="bg-white rounded-lg shadow overflow-hidden">
+            <!-- Your existing cart items display -->
             @foreach($cart as $id => $item)
             <div class="flex items-center justify-between p-6 border-b">
                 <div class="flex items-center space-x-4">
@@ -45,7 +50,6 @@
                 </div>
 
                 <div class="flex items-center space-x-4">
-                    <!-- Quantity Update -->
                     <form action="{{ route('cart.update', $id) }}" method="POST" class="flex items-center">
                         @csrf
                         <input type="number" name="quantity" value="{{ $item['quantity'] }}"
@@ -59,7 +63,6 @@
                         ${{ number_format($item['price'] * $item['quantity'], 2) }}
                     </span>
 
-                    <!-- Remove Button -->
                     <form action="{{ route('cart.remove', $id) }}" method="POST">
                         @csrf
                         <button type="submit" class="text-red-500 hover:text-red-700">
@@ -70,7 +73,6 @@
             </div>
             @endforeach
 
-            <!-- Cart Total -->
             <div class="p-6 bg-gray-50">
                 <div class="flex justify-between items-center mb-4">
                     <span class="text-xl font-bold">Total:</span>
@@ -87,9 +89,6 @@
                             Clear Cart
                         </button>
                     </form>
-                    <button class="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600">
-                        Checkout (Coming Soon)
-                    </button>
                 </div>
             </div>
         </div>

@@ -20,7 +20,9 @@ class CartController extends Controller
         return view('cart.index', compact('cart', 'total'));
     }
 
-    public function add(Product $product)
+    // In your CartController add method, make sure you have:
+    // In your CartController add method
+    public function add(Product $product, Request $request)
     {
         $cart = session()->get('cart', []);
 
@@ -37,6 +39,18 @@ class CartController extends Controller
         }
 
         session()->put('cart', $cart);
+
+        $cartCount = array_sum(array_column($cart, 'quantity'));
+
+        // Return JSON for AJAX requests
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Product added to cart!',
+                'cart_count' => $cartCount
+            ]);
+        }
+
         return redirect()->back()->with('success', 'Product added to cart!');
     }
 
@@ -71,5 +85,15 @@ class CartController extends Controller
     {
         session()->forget('cart');
         return redirect()->route('cart.index')->with('success', 'Cart cleared!');
+    }
+
+    private function getCartCount()
+    {
+        $cart = session()->get('cart', []);
+        $count = 0;
+        foreach ($cart as $item) {
+            $count += $item['quantity'];
+        }
+        return $count;
     }
 }
