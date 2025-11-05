@@ -20,66 +20,42 @@ class CartController extends Controller
         return view('cart.index', compact('cart', 'total'));
     }
 
-    public function add(Product $product, Request $request)
+    public function add(Product $product)
     {
         $cart = session()->get('cart', []);
-        $quantity = $request->quantity ?? 1;
 
-        // Check if product is already in cart
         if (isset($cart[$product->id])) {
-            $cart[$product->id]['quantity'] += $quantity;
+            $cart[$product->id]['quantity']++;
         } else {
             $cart[$product->id] = [
                 "id" => $product->id,
                 "name" => $product->name,
-                "slug" => $product->slug,
-                "quantity" => $quantity,
-                "price" => $product->current_price,
-                "image" => $product->image,
-                "stock" => $product->stock
+                "price" => $product->price,
+                "quantity" => 1,
+                "image" => $product->image
             ];
         }
 
         session()->put('cart', $cart);
-
-        if ($request->ajax()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Product added to cart!',
-                'cart_count' => $this->getCartCount()
-            ]);
-        }
-
         return redirect()->back()->with('success', 'Product added to cart!');
     }
 
-    public function update(Product $product, Request $request)
+    public function update(Request $request, Product $product)
     {
         $cart = session()->get('cart', []);
         $quantity = $request->quantity;
 
         if ($quantity <= 0) {
-            return $this->remove($product, $request);
-        }
-
-        if (isset($cart[$product->id])) {
+            unset($cart[$product->id]);
+        } else {
             $cart[$product->id]['quantity'] = $quantity;
-            session()->put('cart', $cart);
         }
 
-        if ($request->ajax()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Cart updated!',
-                'cart_count' => $this->getCartCount(),
-                'subtotal' => $cart[$product->id]['price'] * $quantity
-            ]);
-        }
-
+        session()->put('cart', $cart);
         return redirect()->back()->with('success', 'Cart updated!');
     }
 
-    public function remove(Product $product, Request $request)
+    public function remove(Product $product)
     {
         $cart = session()->get('cart', []);
 
@@ -88,48 +64,12 @@ class CartController extends Controller
             session()->put('cart', $cart);
         }
 
-        if ($request->ajax()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Product removed from cart!',
-                'cart_count' => $this->getCartCount()
-            ]);
-        }
-
         return redirect()->back()->with('success', 'Product removed from cart!');
     }
 
-    public function clear(Request $request)
+    public function clear()
     {
         session()->forget('cart');
-
-        if ($request->ajax()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Cart cleared!',
-                'cart_count' => 0
-            ]);
-        }
-
         return redirect()->route('cart.index')->with('success', 'Cart cleared!');
-    }
-
-    public function count()
-    {
-        return response()->json([
-            'count' => $this->getCartCount()
-        ]);
-    }
-
-    private function getCartCount()
-    {
-        $cart = session()->get('cart', []);
-        $count = 0;
-
-        foreach ($cart as $item) {
-            $count += $item['quantity'];
-        }
-
-        return $count;
     }
 }
