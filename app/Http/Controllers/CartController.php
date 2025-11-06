@@ -1,5 +1,5 @@
 <?php
-// app/Http/Controllers/CartController.php
+// app/Http\Controllers\CartController.php
 
 namespace App\Http\Controllers;
 
@@ -10,31 +10,19 @@ class CartController extends Controller
 {
     public function __construct()
     {
-        // Apply auth middleware to all cart methods except count (if needed for display)
-        $this->middleware('auth')->except(['count']);
+        $this->middleware('auth');
     }
 
     public function index()
     {
         $cart = session()->get('cart', []);
-        $total = 0;
+
+        // Clean up invalid products automatically
+        $cart = $this->cleanupCart($cart);
+
         $subtotal = 0;
-
-        // Validate cart items and remove invalid ones
-        $validCart = [];
         foreach ($cart as $productId => $item) {
-            $product = Product::find($productId);
-            if ($product) {
-                $validCart[$productId] = $item;
-                $itemTotal = $item['price'] * $item['quantity'];
-                $subtotal += $itemTotal;
-            }
-        }
-
-        // Update session with valid cart only
-        if (count($validCart) != count($cart)) {
-            session()->put('cart', $validCart);
-            $cart = $validCart;
+            $subtotal += $item['price'] * $item['quantity'];
         }
 
         $tax = $subtotal * 0.10;
@@ -44,13 +32,42 @@ class CartController extends Controller
         return view('cart.index', compact('cart', 'subtotal', 'tax', 'shipping', 'total'));
     }
 
-    public function add(Product $product, Request $request)
+    /**
+     * Remove products from cart that no longer exist in database
+     */
+    private function cleanupCart($cart)
     {
-        // Ensure the product exists and is active
-        if (!$product->exists || !$product->is_active) {
-            return redirect()->back()->with('error', 'This product is not available.');
+        $validCart = [];
+        $removedProducts = [];
+
+        foreach ($cart as $productId => $item) {
+            $product = Product::find($productId);
+            if ($product) {
+                $validCart[$productId] = $item;
+            } else {
+                $removedProducts[] = $item['name'];
+            }
         }
 
+        // Update session with valid cart only
+        if (count($validCart) != count($cart)) {
+            session()->put('cart', $validCart);
+
+            // Flash a message if products were removed
+            if (!empty($removedProducts)) {
+                session()->flash(
+                    'warning',
+                    'Some products are no longer available and were removed from your cart: ' .
+                        implode(', ', $removedProducts)
+                );
+            }
+        }
+
+        return $validCart;
+    }
+
+    public function add(Product $product, Request $request)
+    {
         $cart = session()->get('cart', []);
         $quantity = $request->quantity ?? 1;
 
@@ -80,48 +97,55 @@ class CartController extends Controller
         return redirect()->back()->with('success', 'Product added to cart!');
     }
 
-    public function update(Request $request, Product $product)
+    public function update(Request $request, $productId)
     {
         $cart = session()->get('cart', []);
         $quantity = $request->quantity;
 
+        // If quantity is 0 or negative, remove the item
         if ($quantity <= 0) {
-            unset($cart[$product->id]);
-        } else {
-            $cart[$product->id]['quantity'] = $quantity;
+            return $this->remove($productId);
         }
 
-        session()->put('cart', $cart);
+        // Update quantity if product exists in cart
+        if (isset($cart[$productId])) {
+            $cart[$productId]['quantity'] = $quantity;
+            session()->put('cart', $cart);
 
-        if ($request->ajax()) {
-            $subtotal = $cart[$product->id]['price'] * $quantity;
-            return response()->json([
-                'success' => true,
-                'message' => 'Cart updated!',
-                'cart_count' => $this->getCartCount(),
-                'subtotal' => number_format($subtotal, 2)
-            ]);
+            return redirect()->back()->with('success', 'Cart updated successfully!');
         }
 
-        return redirect()->back()->with('success', 'Cart updated!');
+        return redirect()->back()->with('error', 'Product not found in cart!');
     }
 
-    public function remove(Product $product)
+    public function remove($productId)
     {
         $cart = session()->get('cart', []);
 
-        if (isset($cart[$product->id])) {
-            unset($cart[$product->id]);
+        if (isset($cart[$productId])) {
+            $productName = $cart[$productId]['name'];
+            unset($cart[$productId]);
             session()->put('cart', $cart);
+            return redirect()->back()->with('success', $productName . ' removed from cart!');
         }
 
-        return redirect()->back()->with('success', 'Product removed from cart!');
+        return redirect()->back()->with('error', 'Product not found in cart!');
     }
 
     public function clear()
     {
         session()->forget('cart');
-        return redirect()->route('cart.index')->with('success', 'Cart cleared!');
+        return redirect()->route('cart.index')->with('success', 'Cart cleared successfully!');
+    }
+
+    public function count()
+    {
+        $cart = session()->get('cart', []);
+        $count = 0;
+        foreach ($cart as $item) {
+            $count += $item['quantity'];
+        }
+        return response()->json(['count' => $count]);
     }
 
     private function getCartCount()

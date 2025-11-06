@@ -18,23 +18,29 @@
     @if(count($cart) > 0)
     <div class="bg-white rounded-lg shadow overflow-hidden">
         <!-- Your existing cart items display -->
-        @foreach($cart as $id => $item)
+        @foreach($cart as $productId => $item)
         <div class="flex items-center justify-between p-6 border-b">
             <div class="flex items-center space-x-4">
                 <div class="w-16 h-16 bg-gray-200 rounded flex items-center justify-center">
-                    <span class="text-gray-500">Image</span>
+                    @if($item['image'])
+                    <img src="{{ asset('storage/' . $item['image']) }}" alt="{{ $item['name'] }}" class="max-h-12 max-w-full object-contain">
+                    @else
+                    <span class="text-gray-500 text-xs">Image</span>
+                    @endif
                 </div>
                 <div>
                     <h3 class="font-semibold text-lg">{{ $item['name'] }}</h3>
-                    <p class="text-gray-600">${{ number_format($item['price'], 2) }}</p>
+                    <p class="text-gray-600">${{ number_format($item['price'], 2) }} x {{ $item['quantity'] }}</p>
                 </div>
             </div>
 
             <div class="flex items-center space-x-4">
-                <form action="{{ route('cart.update', $id) }}" method="POST" class="flex items-center">
+                <!-- Quantity Update Form -->
+                <form action="{{ route('cart.update', $productId) }}" method="POST" class="flex items-center">
                     @csrf
                     <input type="number" name="quantity" value="{{ $item['quantity'] }}"
-                        min="1" class="w-16 border rounded px-2 py-1 text-center">
+                        min="1" max="{{ $item['stock'] ?? 10 }}"
+                        class="w-16 border rounded px-2 py-1 text-center">
                     <button type="submit" class="ml-2 bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">
                         Update
                     </button>
@@ -44,9 +50,10 @@
                     ${{ number_format($item['price'] * $item['quantity'], 2) }}
                 </span>
 
-                <form action="{{ route('cart.remove', $id) }}" method="POST">
+                <!-- Remove Form -->
+                <form action="{{ route('cart.remove', $productId) }}" method="POST">
                     @csrf
-                    <button type="submit" class="text-red-500 hover:text-red-700">
+                    <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600">
                         Remove
                     </button>
                 </form>

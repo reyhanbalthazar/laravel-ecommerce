@@ -29,9 +29,8 @@ Route::middleware(['auth'])->group(function () {
     // Cart Routes (protected)
     Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
     Route::post('/cart/add/{product}', [CartController::class, 'add'])->name('cart.add');
-    Route::post('/cart/update/{product}', [CartController::class, 'update'])->name('cart.update');
-    Route::post('/cart/remove/{product}', [CartController::class, 'remove'])->name('cart.remove');
-    Route::get('/cart/count', [CartController::class, 'count'])->name('cart.count');
+    Route::post('/cart/update/{productId}', [CartController::class, 'update'])->name('cart.update');
+    Route::post('/cart/remove/{productId}', [CartController::class, 'remove'])->name('cart.remove');
     Route::post('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
 
     // Checkout and Order Routes (protected)
@@ -40,5 +39,24 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
 });
 
-// Order show route can be public (view order by order number)
+// Public routes that don't require auth
+Route::get('/cart/count', [CartController::class, 'count'])->name('cart.count');
 Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+
+// Add this temporarily to routes/web.php to debug
+Route::get('/debug/cart-items', function () {
+    $cart = session()->get('cart', []);
+    $results = [];
+
+    foreach ($cart as $productId => $item) {
+        $product = \App\Models\Product::find($productId);
+        $results[] = [
+            'cart_product_id' => $productId,
+            'cart_product_name' => $item['name'],
+            'product_exists' => $product ? 'YES' : 'NO',
+            'product_in_db' => $product ? $product->name : 'NOT FOUND'
+        ];
+    }
+
+    return response()->json($results);
+});
