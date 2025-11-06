@@ -12,44 +12,34 @@
 
 <body class="bg-gray-50">
     <!-- Navigation -->
-    <nav class="bg-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4">
-            <div class="flex justify-between items-center py-4">
-                <div class="flex items-center">
-                    <a href="{{ route('home') }}" class="text-2xl font-bold text-gray-800">LaravelStore</a>
-                    <div class="ml-10 flex space-x-8">
-                        <a href="{{ route('home') }}" class="text-gray-600 hover:text-gray-900">Home</a>
-                        <a href="{{ route('products.index') }}" class="text-gray-600 hover:text-gray-900">Products</a>
-                        <a href="{{ route('categories.index') }}" class="text-gray-600 hover:text-gray-900">Categories</a>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-4">
-                    @auth
-                    <a href="{{ route('cart.index') }}" class="text-gray-600 hover:text-gray-900 relative">
-                        <i class="fas fa-shopping-cart"></i>
-                        <span class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center cart-count">0</span>
-                    </a>
-                    <div class="relative group">
-                        <button class="text-gray-600 hover:text-gray-900 flex items-center">
-                            <i class="fas fa-user mr-2"></i>
-                            {{ auth()->user()->name }}
-                        </button>
-                        <div class="absolute right-0 w-48 mt-2 bg-white rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
-                            <a href="{{ route('orders.index') }}" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">My Orders</a>
-                            @if(auth()->user()->is_admin)
-                            <a href="{{ route('admin.dashboard') }}" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Admin Panel</a>
-                            @endif
-                            <form method="POST" action="{{ route('logout') }}">
-                                @csrf
-                                <button type="submit" class="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100">Logout</button>
-                            </form>
-                        </div>
-                    </div>
-                    @else
-                    <a href="{{ route('login') }}" class="text-gray-600 hover:text-gray-900">Login</a>
-                    <a href="{{ route('register') }}" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Register</a>
-                    @endauth
-                </div>
+    <!-- Add this navigation to your existing views -->
+    <nav class="bg-white shadow py-4">
+        <div class="max-w-6xl mx-auto px-4 flex justify-between items-center">
+            <a href="/" class="text-xl font-bold">LaravelStore</a>
+            <div class="flex items-center space-x-4">
+                @auth
+                <span class="text-gray-600">Welcome, {{ auth()->user()->name }}</span>
+                <a href="/orders" class="text-gray-600 hover:text-gray-900">My Orders</a>
+                <a href="/products" class="text-gray-600 hover:text-gray-900">Products</a>
+                <a href="/cart" class="text-gray-600 hover:text-gray-900">Cart
+                    <span class="bg-blue-500 text-white rounded-full px-2 py-1 text-xs">
+                        {{ array_sum(array_column(session('cart', []), 'quantity')) }}
+                    </span>
+                </a>
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit" class="text-gray-600 hover:text-gray-900">Logout</button>
+                </form>
+                @else
+                <a href="/products" class="text-gray-600 hover:text-gray-900">Products</a>
+                <a href="/cart" class="text-gray-600 hover:text-gray-900">Cart
+                    <span class="bg-blue-500 text-white rounded-full px-2 py-1 text-xs">
+                        {{ array_sum(array_column(session('cart', []), 'quantity')) }}
+                    </span>
+                </a>
+                <a href="{{ route('login') }}" class="text-gray-600 hover:text-gray-900">Login</a>
+                <a href="{{ route('register') }}" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Register</a>
+                @endauth
             </div>
         </div>
     </nav>

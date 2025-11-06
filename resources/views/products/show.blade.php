@@ -1,28 +1,9 @@
 <!-- resources/views/products/show.blade.php -->
-<!DOCTYPE html>
-<html lang="en">
+@extends('layouts.app')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $product->name }} - Laravel Store</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
+@section('title', 'Home - LaravelStore')
 
-<body class="bg-gray-100">
-    <nav class="bg-white shadow py-4">
-        <div class="max-w-6xl mx-auto px-4 flex justify-between items-center">
-            <a href="/" class="text-xl font-bold">LaravelStore</a>
-            <div class="flex space-x-4">
-                <a href="/products" class="text-gray-600 hover:text-gray-900">Products</a>
-                <a href="/cart" class="text-gray-600 hover:text-gray-900">Cart
-                    <span class="bg-blue-500 text-white rounded-full px-2 py-1 text-xs">
-                        {{ array_sum(array_column(session('cart', []), 'quantity')) }}
-                    </span>
-                </a>
-            </div>
-        </div>
-    </nav>
+@section('content')
 
     <!-- Success Popup -->
     <div id="success-popup" class="fixed inset-0 flex items-center justify-center z-50 hidden">
@@ -265,6 +246,4 @@
     </script>
     @endif
 
-</body>
-
-</html>
+@endsection

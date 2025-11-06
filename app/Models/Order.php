@@ -68,7 +68,44 @@ class Order extends Model
         return $query->where('status', 'completed');
     }
 
-    // Helper methods
+    // Helper methods to parse shipping address
+    public function getCustomerNameAttribute()
+    {
+        $lines = explode("\n", $this->shipping_address);
+        return $lines[0] ?? 'N/A';
+    }
+
+    public function getCustomerEmailAttribute()
+    {
+        $lines = explode("\n", $this->shipping_address);
+        return $lines[1] ?? 'N/A';
+    }
+
+    public function getCustomerPhoneAttribute()
+    {
+        $lines = explode("\n", $this->shipping_address);
+        return $lines[2] ?? 'N/A';
+    }
+
+    public function getCustomerAddressAttribute()
+    {
+        $lines = explode("\n", $this->shipping_address);
+        return $lines[3] ?? 'N/A';
+    }
+
+    public function getCustomerCityStateZipAttribute()
+    {
+        $lines = explode("\n", $this->shipping_address);
+        return $lines[4] ?? 'N/A';
+    }
+
+    public function getCustomerCountryAttribute()
+    {
+        $lines = explode("\n", $this->shipping_address);
+        return $lines[5] ?? 'N/A';
+    }
+
+    // Original helper methods
     public function canBeCancelled()
     {
         return in_array($this->status, ['pending', 'processing']);
