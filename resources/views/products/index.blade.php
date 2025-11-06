@@ -182,12 +182,29 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             @foreach($products as $product)
             <div class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition duration-300">
-                <h3 class="font-semibold text-lg mb-2">{{ $product->name }}</h3>
-                <p class="text-gray-600 mb-2">${{ number_format($product->price, 2) }}</p>
-                <p class="text-sm text-gray-500 mb-2">{{ $product->category->name }}</p>
-                <p class="text-sm text-gray-500 mb-4">{{ Str::limit($product->description, 100) }}</p>
+                <!-- Product Image/Placeholder -->
+                <div class="bg-gray-100 rounded-lg h-48 flex items-center justify-center mb-4">
+                    @if($product->image)
+                    <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="max-h-40 max-w-full object-contain">
+                    @else
+                    <div class="text-center text-gray-400">
+                        <svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        <p class="text-sm">No image</p>
+                    </div>
+                    @endif
+                </div>
 
-                <!-- Regular form that redirects back -->
+                <!-- Product Info - Clickable -->
+                <a href="{{ route('products.show', $product) }}" class="block mb-4">
+                    <h3 class="font-semibold text-lg mb-2 hover:text-blue-600">{{ $product->name }}</h3>
+                    <p class="text-gray-600 mb-2">${{ number_format($product->price, 2) }}</p>
+                    <p class="text-sm text-gray-500 mb-2">{{ $product->category->name }}</p>
+                    <p class="text-sm text-gray-500">{{ Str::limit($product->description, 100) }}</p>
+                </a>
+
+                <!-- Add to Cart Button -->
                 <form action="{{ route('cart.add', $product) }}" method="POST">
                     @csrf
                     <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition duration-300">
