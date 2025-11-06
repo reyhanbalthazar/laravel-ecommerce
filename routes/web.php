@@ -24,16 +24,21 @@ Route::get('/products/{product:slug}', [ProductController::class, 'show'])->name
 Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
 Route::get('/category/{category:slug}', [CategoryController::class, 'show'])->name('categories.show');
 
-// Cart Routes (public)
-Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
-Route::post('/cart/add/{product}', [CartController::class, 'add'])->name('cart.add');
-Route::post('/cart/update/{product}', [CartController::class, 'update'])->name('cart.update');
-Route::post('/cart/remove/{product}', [CartController::class, 'remove'])->name('cart.remove');
-Route::get('/cart/count', [CartController::class, 'count'])->name('cart.count');
-Route::post('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
+// Protected Routes (Require Authentication)
+Route::middleware(['auth'])->group(function () {
+    // Cart Routes (protected)
+    Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+    Route::post('/cart/add/{product}', [CartController::class, 'add'])->name('cart.add');
+    Route::post('/cart/update/{product}', [CartController::class, 'update'])->name('cart.update');
+    Route::post('/cart/remove/{product}', [CartController::class, 'remove'])->name('cart.remove');
+    Route::get('/cart/count', [CartController::class, 'count'])->name('cart.count');
+    Route::post('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
 
-// Checkout and Order Routes
-Route::get('/checkout', [CheckoutController::class, 'show'])->name('checkout.show');
-Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+    // Checkout and Order Routes (protected)
+    Route::get('/checkout', [CheckoutController::class, 'show'])->name('checkout.show');
+    Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+});
+
+// Order show route can be public (view order by order number)
 Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
-Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');

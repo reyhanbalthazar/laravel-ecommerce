@@ -8,20 +8,37 @@ use Illuminate\Http\Request;
 
 class CartController extends Controller
 {
+    public function __construct()
+    {
+        // Apply auth middleware to all cart methods except count (if needed for display)
+        $this->middleware('auth')->except(['count']);
+    }
+
     public function index()
     {
         $cart = session()->get('cart', []);
         $total = 0;
         $subtotal = 0;
 
-        foreach ($cart as $item) {
-            $itemTotal = $item['price'] * $item['quantity'];
-            $subtotal += $itemTotal;
+        // Validate cart items and remove invalid ones
+        $validCart = [];
+        foreach ($cart as $productId => $item) {
+            $product = Product::find($productId);
+            if ($product) {
+                $validCart[$productId] = $item;
+                $itemTotal = $item['price'] * $item['quantity'];
+                $subtotal += $itemTotal;
+            }
         }
 
-        // Calculate totals (you can add tax, shipping later)
-        $tax = $subtotal * 0.10; // 10% tax example
-        $shipping = $subtotal > 50 ? 0 : 10; // Free shipping over $50
+        // Update session with valid cart only
+        if (count($validCart) != count($cart)) {
+            session()->put('cart', $validCart);
+            $cart = $validCart;
+        }
+
+        $tax = $subtotal * 0.10;
+        $shipping = $subtotal > 50 ? 0 : 10;
         $total = $subtotal + $tax + $shipping;
 
         return view('cart.index', compact('cart', 'subtotal', 'tax', 'shipping', 'total'));
@@ -29,6 +46,11 @@ class CartController extends Controller
 
     public function add(Product $product, Request $request)
     {
+        // Ensure the product exists and is active
+        if (!$product->exists || !$product->is_active) {
+            return redirect()->back()->with('error', 'This product is not available.');
+        }
+
         $cart = session()->get('cart', []);
         $quantity = $request->quantity ?? 1;
 

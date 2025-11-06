@@ -185,12 +185,18 @@
             </a>
 
             <!-- Add to Cart Button -->
+            @auth
             <form action="{{ route('cart.add', $product) }}" method="POST">
                 @csrf
                 <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition duration-300">
                     Add to Cart
                 </button>
             </form>
+            @else
+            <a href="{{ route('login') }}" class="block w-full bg-gray-500 text-white py-2 rounded hover:bg-gray-600 transition duration-300 text-center">
+                Login to Purchase
+            </a>
+            @endauth
         </div>
         @endforeach
     </div>

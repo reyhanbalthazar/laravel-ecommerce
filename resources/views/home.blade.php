@@ -57,12 +57,18 @@
                             <span class="text-lg font-bold text-gray-800">${{ $product->price }}</span>
                             @endif
                         </div>
+                        @auth
                         <form action="{{ route('cart.add', $product) }}" method="POST">
                             @csrf
                             <button type="submit" class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition duration-300">
                                 <i class="fas fa-cart-plus"></i>
                             </button>
                         </form>
+                        @else
+                        <a href="{{ route('login') }}" class="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600 transition duration-300 text-center">
+                            <i class="fas fa-cart-plus"></i>
+                        </a>
+                        @endauth
                     </div>
                 </div>
             </div>

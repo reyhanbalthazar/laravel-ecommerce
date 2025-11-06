@@ -12,7 +12,6 @@
 
 <body class="bg-gray-50">
     <!-- Navigation -->
-    <!-- Add this navigation to your existing views -->
     <nav class="bg-white shadow py-4">
         <div class="max-w-6xl mx-auto px-4 flex justify-between items-center">
             <a href="/" class="text-xl font-bold">LaravelStore</a>
@@ -21,8 +20,9 @@
                 <span class="text-gray-600">Welcome, {{ auth()->user()->name }}</span>
                 <a href="/orders" class="text-gray-600 hover:text-gray-900">My Orders</a>
                 <a href="/products" class="text-gray-600 hover:text-gray-900">Products</a>
-                <a href="/cart" class="text-gray-600 hover:text-gray-900">Cart
-                    <span class="bg-blue-500 text-white rounded-full px-2 py-1 text-xs">
+                <a href="/cart" class="text-gray-600 hover:text-gray-900 relative">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="absolute -top-2 -right-2 bg-blue-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center cart-count">
                         {{ array_sum(array_column(session('cart', []), 'quantity')) }}
                     </span>
                 </a>
@@ -32,11 +32,6 @@
                 </form>
                 @else
                 <a href="/products" class="text-gray-600 hover:text-gray-900">Products</a>
-                <a href="/cart" class="text-gray-600 hover:text-gray-900">Cart
-                    <span class="bg-blue-500 text-white rounded-full px-2 py-1 text-xs">
-                        {{ array_sum(array_column(session('cart', []), 'quantity')) }}
-                    </span>
-                </a>
                 <a href="{{ route('login') }}" class="text-gray-600 hover:text-gray-900">Login</a>
                 <a href="{{ route('register') }}" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Register</a>
                 @endauth
@@ -90,7 +85,7 @@
 
     <!-- Scripts -->
     <script>
-        // Update cart count
+        // Update cart count (only for logged-in users)
         function updateCartCount() {
             fetch('{{ route("cart.count") }}')
                 .then(response => response.json())
@@ -101,9 +96,13 @@
                 });
         }
 
-        // Initialize cart count on page load
+        // Initialize cart count on page load (only for logged-in users)
+    </script>
+    @auth
+    <script>
         document.addEventListener('DOMContentLoaded', updateCartCount);
     </script>
+    @endauth
 
     @stack('scripts')
 </body>
