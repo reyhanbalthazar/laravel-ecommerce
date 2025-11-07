@@ -73,6 +73,26 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         $product->delete();
-        return redirect()->route('admin.products.index')->with('success', 'Product deleted successfully!');
+        return redirect()->route('admin.products.index')->with('success', 'Product moved to trash successfully!');
+    }
+
+    public function forceDestroy($id)
+    {
+        $product = Product::onlyTrashed()->findOrFail($id);
+        $product->forceDelete();
+        return redirect()->route('admin.products.trashed')->with('success', 'Product permanently deleted!');
+    }
+
+    public function trashed()
+    {
+        $products = Product::with('category')->onlyTrashed()->latest()->paginate(10);
+        return view('admin.products.trashed', compact('products'));
+    }
+
+    public function restore($id)
+    {
+        $product = Product::onlyTrashed()->findOrFail($id);
+        $product->restore();
+        return redirect()->route('admin.products.index')->with('success', 'Product restored successfully!');
     }
 }
