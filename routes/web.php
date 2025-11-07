@@ -8,6 +8,11 @@ use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+// Add these Admin controller imports
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\ProductController as AdminProductController;
+use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
+use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use Illuminate\Support\Facades\Route;
 
 // Authentication Routes
@@ -39,24 +44,32 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
 });
 
+// Admin Routes (Protected and Admin Only)
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Products - Note: Using AdminProductController alias to avoid conflict
+    Route::get('/products', [AdminProductController::class, 'index'])->name('products.index');
+    Route::get('/products/create', [AdminProductController::class, 'create'])->name('products.create');
+    Route::post('/products', [AdminProductController::class, 'store'])->name('products.store');
+    Route::get('/products/{product}/edit', [AdminProductController::class, 'edit'])->name('products.edit');
+    Route::put('/products/{product}', [AdminProductController::class, 'update'])->name('products.update');
+    Route::delete('/products/{product}', [AdminProductController::class, 'destroy'])->name('products.destroy');
+
+    // Categories - Note: Using AdminCategoryController alias to avoid conflict
+    Route::get('/categories', [AdminCategoryController::class, 'index'])->name('categories.index');
+    Route::get('/categories/create', [AdminCategoryController::class, 'create'])->name('categories.create');
+    Route::post('/categories', [AdminCategoryController::class, 'store'])->name('categories.store');
+    Route::get('/categories/{category}/edit', [AdminCategoryController::class, 'edit'])->name('categories.edit');
+    Route::put('/categories/{category}', [AdminCategoryController::class, 'update'])->name('categories.update');
+    Route::delete('/categories/{category}', [AdminCategoryController::class, 'destroy'])->name('categories.destroy');
+
+    // Orders - Note: Using AdminOrderController alias to avoid conflict
+    Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
+    Route::put('/orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.updateStatus');
+});
+
 // Public routes that don't require auth
 Route::get('/cart/count', [CartController::class, 'count'])->name('cart.count');
 Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
-
-// Add this temporarily to routes/web.php to debug
-Route::get('/debug/cart-items', function () {
-    $cart = session()->get('cart', []);
-    $results = [];
-
-    foreach ($cart as $productId => $item) {
-        $product = \App\Models\Product::find($productId);
-        $results[] = [
-            'cart_product_id' => $productId,
-            'cart_product_name' => $item['name'],
-            'product_exists' => $product ? 'YES' : 'NO',
-            'product_in_db' => $product ? $product->name : 'NOT FOUND'
-        ];
-    }
-
-    return response()->json($results);
-});

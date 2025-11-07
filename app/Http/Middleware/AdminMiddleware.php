@@ -16,7 +16,7 @@ class AdminMiddleware
         }
 
         if (!auth()->user()->is_admin) {
-            abort(403, 'Unauthorized action.');
+            abort(403, 'Unauthorized access.');
         }
 
         return $next($request);
