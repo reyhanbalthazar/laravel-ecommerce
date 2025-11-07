@@ -104,4 +104,38 @@ class Product extends Model
     {
         return 'slug';
     }
+
+    // Add to your existing Product model:
+    public function images()
+    {
+        return $this->hasMany(ProductImage::class)->orderBy('sort_order');
+    }
+
+    public function primaryImage()
+    {
+        return $this->hasOne(ProductImage::class)->where('is_primary', true);
+    }
+
+    // Add accessor for main image URL
+    public function getMainImageUrlAttribute()
+    {
+        if ($this->primaryImage) {
+            return asset('storage/' . $this->primaryImage->image_path);
+        }
+
+        if ($this->images->count() > 0) {
+            return asset('storage/' . $this->images->first()->image_path);
+        }
+
+        return null;
+    }
+
+    // Add this method to your existing Product model:
+    public function getImagesAttribute()
+    {
+        if (!$this->relationLoaded('images')) {
+            $this->load('images');
+        }
+        return $this->getRelationValue('images');
+    }
 }
