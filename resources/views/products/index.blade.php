@@ -163,9 +163,14 @@
         @foreach($products as $product)
         <div class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition duration-300">
             <!-- Product Image/Placeholder -->
-            <div class="bg-gray-100 rounded-lg h-48 flex items-center justify-center mb-4">
-                @if($product->image)
-                <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="max-h-40 max-w-full object-contain">
+            <div class="bg-gray-100 rounded-lg h-48 flex items-center justify-center mb-4 overflow-hidden">
+                @if($product->images && $product->images->count() > 0)
+                @php
+                $primaryImage = $product->images->where('is_primary', true)->first() ?? $product->images->first();
+                @endphp
+                <img src="{{ asset('storage/' . $primaryImage->image_path) }}"
+                    alt="{{ $product->name }}"
+                    class="w-full h-full object-cover hover:scale-105 transition duration-300">
                 @else
                 <div class="text-center text-gray-400">
                     <svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

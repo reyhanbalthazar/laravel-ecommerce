@@ -11,14 +11,14 @@ class ProductController extends Controller
 {
     public function home()
     {
-        $featuredProducts = Product::with('category')
+        $featuredProducts = Product::with(['category', 'images']) // Add images relationship
             ->featured()
             ->active()
             ->inStock()
             ->limit(8)
             ->get();
 
-        $newArrivals = Product::with('category')
+        $newArrivals = Product::with(['category', 'images']) // Add images relationship
             ->active()
             ->inStock()
             ->latest()
@@ -32,7 +32,7 @@ class ProductController extends Controller
 
     public function index(Request $request)
     {
-        $query = Product::with('category')->active();
+        $query = Product::with(['category', 'images'])->active(); // Add images relationship
 
         // Search
         if ($request->has('search') && !empty($request->search)) {
@@ -88,7 +88,10 @@ class ProductController extends Controller
             abort(404);
         }
 
-        $relatedProducts = Product::with('category')
+        // Load images relationship for this product
+        $product->load('images');
+
+        $relatedProducts = Product::with(['category', 'images']) // Add images for related products
             ->where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
             ->active()
