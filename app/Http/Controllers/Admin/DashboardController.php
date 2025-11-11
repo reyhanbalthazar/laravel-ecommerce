@@ -19,6 +19,8 @@ class DashboardController extends Controller
             'total_users' => User::count(),
             'total_revenue' => Order::where('status', 'completed')->sum('total'),
             'pending_orders' => Order::where('status', 'pending')->count(),
+            'processing_orders' => Order::processing()->count(),
+            'completed_orders' => Order::completed()->count(),
             'low_stock_products' => Product::where('stock', '<', 10)->count(),
         ];
 
