@@ -59,6 +59,48 @@
 - [x] Order Items Storage
 - [x] Admin Order Management
 - [x] Admin Order Status Updates
+- [x] Admin Order Dashboard with Stats Cards
+- [x] Order Search (by order number, customer name/address)
+- [x] Order Filtering (by status, payment status, date range)
+- [x] Order Pagination (10 orders per page)
+- [x] Admin Order Detail View
+- [x] Customer Information Display
+- [x] Shipping Address Display
+- [x] Payment Status Tracking
+- [x] Payment Method Display
+- [x] Order Item Details with Images
+- [x] Order Totals Calculation Display
+- [x] Customer Notes Display
+- [x] Order Status Update via Dropdown
+- [x] Order Cancellation with Reason
+- [x] Order Fulfillment (Processing, Shipped markers)
+- [x] Transaction ID Tracking
+- [x] Quick Action Buttons for Order Status
+- [x] Mobile Responsive Design for Orders
+- [x] Order Statistics (Pending, Processing, Completed, Cancelled)
+
+## Payment Gateway Features
+- [x] Mock Payment Service Implementation (Midtrans-like)
+- [x] Multiple Payment Methods Support (Credit Card, Bank Transfer, GoPay, ShopeePay, QRIS)
+- [x] Payment Status Tracking (Pending, Paid, Settlement, Capture, Cancel, Expire, Refund)
+- [x] Transaction ID Generation
+- [x] Payment Method Selection in Checkout
+- [x] Virtual Account Generation (for Bank Transfer)
+- [x] QR Code Display (for e-wallet payments)
+- [x] Payment Webhook Handling
+- [x] Payment Status Checking API
+- [x] Auto-refresh Payment Status on Order Page
+- [x] Payment Instructions for Different Methods
+- [x] Fraud Status Handling
+- [x] Payment Cancellation
+- [x] Payment Expiration Handling
+- [x] Payment Refund Processing
+- [x] Mock Payment Gateway Page (Simulates third-party payment page)
+- [x] Payment Page with Countdown Timer
+- [x] Mark as Paid Button in Mock Payment Page
+- [x] Payment Status Check Button in Mock Payment Page
+- [x] Mock Payment Gateway Integration with Order System
+- [x] Separate Payment Page Accessible from Order Confirmation
 
 ## Category Management Features
 - [x] Category Creation (Admin only)

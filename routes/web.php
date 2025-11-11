@@ -8,6 +8,8 @@ use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\PaymentWebhookController;
+use App\Http\Controllers\MockPaymentController;
 // Add these Admin controller imports
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
@@ -42,6 +44,15 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/checkout', [CheckoutController::class, 'show'])->name('checkout.show');
     Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+    
+    // Order detail and payment routes (protected)
+    Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+    Route::get('/orders/{order}/payment-status', [PaymentWebhookController::class, 'checkPaymentStatus'])->name('orders.payment-status');
+    
+    // Mock payment routes for simulating third-party payment gateway
+    Route::get('/payment/{order}/mock', [MockPaymentController::class, 'show'])->name('payment.mock');
+    Route::post('/payment/{order}/mark-paid', [MockPaymentController::class, 'markAsPaid'])->name('payment.mark.paid');
+    Route::get('/payment/{order}/status', [MockPaymentController::class, 'checkPaymentStatus'])->name('payment.status');
 });
 
 // Admin Routes (Protected and Admin Only)
@@ -75,6 +86,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.updateStatus');
 });
 
+// Payment Webhook Route (public route for payment provider to call)
+Route::post('/webhook/payment', [PaymentWebhookController::class, 'handleWebhook'])->name('webhook.payment');
+
 // Public routes that don't require auth
 Route::get('/cart/count', [CartController::class, 'count'])->name('cart.count');
-Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');

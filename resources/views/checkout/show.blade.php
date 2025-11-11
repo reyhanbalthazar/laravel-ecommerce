@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkout - Laravel Store</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 
 <body class="bg-gray-100">
@@ -92,14 +93,44 @@
                         <div>
                             <label for="zip_code" class="block text-sm font-medium text-gray-700 mb-1">ZIP Code *</label>
                             <input type="text" id="zip_code" name="zip_code" required
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                value="{{ old('zip_code') }}">
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            value="{{ old('zip_code') }}">
                         </div>
                         <div>
                             <label for="country" class="block text-sm font-medium text-gray-700 mb-1">Country *</label>
                             <input type="text" id="country" name="country" required
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                value="{{ old('country') }}">
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            value="{{ old('country') }}">
+                        </div>
+                    </div>
+
+                    <!-- Payment Method Selection -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Payment Method *</label>
+                        <div class="space-y-3">
+                            @foreach($availablePaymentMethods as $method)
+                                @if($method['enabled'])
+                                    <div class="flex items-center border rounded-lg p-4 hover:border-blue-400 cursor-pointer payment-option" data-method="{{ $method['type'] }}">
+                                        <input type="radio" 
+                                            id="payment_{{ $method['type'] }}" 
+                                            name="payment_method" 
+                                            value="{{ $method['type'] }}" 
+                                            class="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                                            {{ $method['type'] === 'credit_card' ? 'checked' : '' }}>
+                                        <label for="payment_{{ $method['type'] }}" class="ml-3 flex items-center cursor-pointer">
+                                            <i class="fas {{ $method['type'] === 'credit_card' ? 'fa-credit-card' : ($method['type'] === 'bank_transfer' ? 'fa-university' : ($method['type'] === 'gopay' ? 'fa-wallet' : ($method['type'] === 'shopeepay' ? 'fa-shopping-bag' : 'fa-qrcode'))) }} text-xl mr-3"></i>
+                                            <span class="font-medium">{{ $method['name'] }}</span>
+                                            @if($method['type'] === 'bank_transfer' && isset($method['options']['banks']))
+                                                <select name="bank" id="bank_{{ $method['type'] }}" class="ml-4 border rounded-md px-2 py-1 text-xs hidden bank-select" style="display:none;">
+                                                    @foreach($method['options']['banks'] as $bank)
+                                                        <option value="{{ $bank }}">{{ strtoupper($bank) }}</option>
+                                                    @endforeach
+                                                </select>
+                                            @endif
+                                        </label>
+                                    </div>
+                                @endif
+                            @endforeach
                         </div>
                     </div>
 
@@ -177,6 +208,43 @@
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const paymentOptions = document.querySelectorAll('.payment-option');
+            const bankSelects = document.querySelectorAll('.bank-select');
+            
+            // Add event listeners to payment options
+            paymentOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    const method = this.getAttribute('data-method');
+                    
+                    // Update radio button selection
+                    const radio = this.querySelector('input[type="radio"]');
+                    radio.checked = true;
+                    
+                    // Hide all bank selects
+                    bankSelects.forEach(select => {
+                        select.style.display = 'none';
+                    });
+                    
+                    // Show the bank select for bank transfer
+                    if(method === 'bank_transfer') {
+                        const bankSelect = document.getElementById('bank_' + method);
+                        if(bankSelect) {
+                            bankSelect.style.display = 'inline-block';
+                        }
+                    }
+                });
+            });
+            
+            // Set first payment method as selected by default
+            if(paymentOptions.length > 0) {
+                const firstRadio = paymentOptions[0].querySelector('input[type="radio"]');
+                firstRadio.checked = true;
+            }
+        });
+    </script>
 </body>
 
 </html>

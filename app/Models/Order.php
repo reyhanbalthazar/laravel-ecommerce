@@ -46,6 +46,14 @@ class Order extends Model
         });
     }
 
+    /**
+     * Get the route key for the model.
+     */
+    public function getRouteKeyName()
+    {
+        return 'order_number';
+    }
+
     // Relationships
     public function user()
     {
@@ -144,5 +152,37 @@ class Order extends Model
     public function scopeCancelled($query)
     {
         return $query->where('status', 'cancelled');
+    }
+
+    // Payment status methods
+    public function checkPaymentStatus()
+    {
+        if (!$this->transaction_id) {
+            return $this->payment_status;
+        }
+
+        // In a real implementation, this would call the actual payment provider
+        // For mock purposes, we'll return the current status
+        return $this->payment_status;
+    }
+
+    public function isPaid()
+    {
+        return in_array($this->payment_status, ['paid']);
+    }
+
+    public function isPending()
+    {
+        return $this->payment_status === 'pending';
+    }
+
+    public function isCancelled()
+    {
+        return $this->payment_status === 'cancel';
+    }
+
+    public function isExpired()
+    {
+        return $this->payment_status === 'expire';
     }
 }

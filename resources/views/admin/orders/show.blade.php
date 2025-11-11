@@ -136,18 +136,20 @@
             <div class="space-y-3">
                 <div>
                     <p class="text-sm font-medium text-gray-600">Payment Status</p>
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                        @if($order->payment_status == 'paid') bg-green-100 text-green-800
-                        @elseif($order->payment_status == 'failed') bg-red-100 text-red-800
-                        @elseif($order->payment_status == 'refunded') bg-purple-100 text-purple-800
-                        @else bg-yellow-100 text-yellow-800 @endif">
-                        {{ ucfirst($order->payment_status) }}
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                        @if($order->isPaid()) bg-green-100 text-green-800
+                        @elseif($order->payment_status == 'failed' || $order->isCancelled()) bg-red-100 text-red-800
+                        @elseif($order->payment_status == 'refunded' || $order->payment_status == 'partial_refund') bg-purple-100 text-purple-800
+                        @elseif($order->isPending()) bg-yellow-100 text-yellow-800
+                        @elseif($order->isExpired()) bg-orange-100 text-orange-800
+                        @else bg-gray-100 text-gray-800 @endif">
+                        {{ ucfirst($order->payment_status ?: 'N/A') }}
                     </span>
                 </div>
                 @if($order->payment_method)
                 <div>
                     <p class="text-sm font-medium text-gray-600">Payment Method</p>
-                    <p class="text-gray-800">{{ ucfirst($order->payment_method) }}</p>
+                    <p class="text-gray-800">{{ ucfirst(str_replace('_', ' ', $order->payment_method)) }}</p>
                 </div>
                 @endif
                 @if($order->transaction_id)

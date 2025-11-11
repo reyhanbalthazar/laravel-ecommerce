@@ -5,11 +5,19 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Services\MockPaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class CheckoutController extends Controller
 {
+    protected $mockPaymentService;
+
+    public function __construct(MockPaymentService $mockPaymentService)
+    {
+        $this->mockPaymentService = $mockPaymentService;
+    }
+
     public function show()
     {
         $cart = session()->get('cart', []);
@@ -28,7 +36,10 @@ class CheckoutController extends Controller
         $shipping = $subtotal > 50 ? 0 : 10; // Free shipping over $50
         $total = $subtotal + $tax + $shipping;
 
-        return view('checkout.show', compact('cart', 'subtotal', 'tax', 'shipping', 'total'));
+        // Get available payment methods from mock service
+        $availablePaymentMethods = $this->mockPaymentService->getAvailablePaymentMethods();
+
+        return view('checkout.show', compact('cart', 'subtotal', 'tax', 'shipping', 'total', 'availablePaymentMethods'));
     }
 
     public function store(Request $request)
@@ -51,6 +62,7 @@ class CheckoutController extends Controller
             'zip_code' => 'required|string|max:10',
             'country' => 'required|string|max:255',
             'customer_note' => 'nullable|string|max:1000',
+            'payment_method' => 'required|string|in:credit_card,bank_transfer,gopay,shopeepay,qris',
         ]);
 
         try {
@@ -81,7 +93,7 @@ class CheckoutController extends Controller
                 'tax' => $tax,
                 'shipping' => $shipping,
                 'total' => $total,
-                'payment_method' => 'card',
+                'payment_method' => $validated['payment_method'],
                 'payment_status' => 'pending',
                 'shipping_address' => $shippingAddress,
                 'customer_note' => $validated['customer_note'] ?? null,
@@ -98,11 +110,58 @@ class CheckoutController extends Controller
                 ]);
             }
 
+            // Prepare customer info for payment
+            $customerInfo = [
+                'first_name' => $validated['first_name'],
+                'last_name' => $validated['last_name'],
+                'email' => $validated['email'],
+                'phone' => $validated['phone'],
+            ];
+
+            // Prepare items info for payment
+            $items = [];
+            foreach ($cart as $item) {
+                $items[] = [
+                    'id' => $item['id'],
+                    'price' => $item['price'],
+                    'quantity' => $item['quantity'],
+                    'name' => $item['name'],
+                ];
+            }
+
+            // Create payment transaction through mock service
+            $paymentData = [
+                'order' => $order,
+                'customer_info' => $customerInfo,
+                'items' => $items,
+                'payment_type' => $validated['payment_method'],
+            ];
+
+            // For bank transfer payments, we might need additional info
+            if ($validated['payment_method'] === 'bank_transfer') {
+                $paymentData['bank'] = $request->bank ?? 'bca';
+            }
+
+            $paymentResult = $this->mockPaymentService->createTransaction($paymentData);
+
+            // Update order with payment information
+            $order->update([
+                'transaction_id' => $paymentResult['transaction_id'] ?? null,
+                'payment_method' => $validated['payment_method'],
+                'payment_status' => $paymentResult['transaction_status'] ?? 'pending',
+            ]);
+
             // Clear the cart
             session()->forget('cart');
 
-            // Redirect to order confirmation
-            return redirect()->route('orders.show', $order)->with('success', 'Order placed successfully!');
+            // Redirect to order confirmation or payment page based on payment type
+            if (in_array($validated['payment_method'], ['gopay', 'shopeepay', 'qris'])) {
+                // These methods typically require customer interaction (like scanning QR)
+                return redirect()->route('orders.show', $order)->with('success', 'Order placed successfully! Please follow the payment instructions on the order details page.');
+            } else {
+                // Standard payment methods
+                return redirect()->route('orders.show', $order)->with('success', 'Order placed successfully!');
+            }
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'There was an error processing your order. Please try again. Error: ' . $e->getMessage());
         }
