@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class CategoryController extends Controller
 {
@@ -26,10 +27,17 @@ class CategoryController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:categories',
             'description' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'is_active' => 'boolean',
         ]);
 
         $validated['slug'] = Str::slug($validated['name']);
+        
+        // Handle image upload if provided
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('categories', 'public');
+            $validated['image'] = $imagePath;
+        }
 
         Category::create($validated);
 
@@ -46,10 +54,30 @@ class CategoryController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:categories,name,' . $category->id,
             'description' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'is_active' => 'boolean',
         ]);
 
         $validated['slug'] = Str::slug($validated['name']);
+        
+        // Handle image removal
+        if ($request->has('remove_image') && $request->remove_image) {
+            if ($category->image) {
+                Storage::disk('public')->delete($category->image);
+                $validated['image'] = null;
+            }
+        }
+        
+        // Handle image upload if provided
+        if ($request->hasFile('image')) {
+            // Delete old image if exists
+            if ($category->image && !$request->has('remove_image')) {
+                Storage::disk('public')->delete($category->image);
+            }
+            
+            $imagePath = $request->file('image')->store('categories', 'public');
+            $validated['image'] = $imagePath;
+        }
 
         $category->update($validated);
 
@@ -61,6 +89,11 @@ class CategoryController extends Controller
         // Prevent deletion if category has products
         if ($category->products()->count() > 0) {
             return redirect()->back()->with('error', 'Cannot delete category with associated products.');
+        }
+
+        // Delete category image if exists
+        if ($category->image) {
+            Storage::disk('public')->delete($category->image);
         }
 
         $category->delete();

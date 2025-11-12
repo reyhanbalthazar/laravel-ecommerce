@@ -86,9 +86,15 @@
         <h2 class="text-3xl font-bold text-gray-800 mb-8">Shop by Category</h2>
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             @foreach($categories as $category)
-            <a href="{{ route('categories.show', $category) }}" class="bg-white rounded-lg shadow-md p-6 text-center hover:shadow-lg transition duration-300">
-                <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <i class="fas fa-folder text-blue-600"></i>
+            <a href="{{ route('categories.show', $category) }}" class="bg-white rounded-lg shadow-md p-6 text-center hover:shadow-lg transition duration-300 block">
+                <div class="flex justify-center mb-3">
+                    @if($category->image)
+                        <img src="{{ $category->image_url }}" alt="{{ $category->name }}" class="w-12 h-12 rounded-full object-cover">
+                    @else
+                        <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-folder text-blue-600"></i>
+                        </div>
+                    @endif
                 </div>
                 <h3 class="font-semibold text-gray-800">{{ $category->name }}</h3>
                 <p class="text-sm text-gray-500 mt-1">{{ $category->products_count }} products</p>

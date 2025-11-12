@@ -6,6 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class Category extends Model
 {
@@ -15,6 +16,7 @@ class Category extends Model
         'name',
         'slug',
         'description',
+        'image',
         'is_active'
     ];
 
@@ -52,5 +54,16 @@ class Category extends Model
     public function getRouteKeyName()
     {
         return 'slug';
+    }
+
+    // Accessor for category image URL
+    public function getImageUrlAttribute()
+    {
+        if ($this->image) {
+            return asset('storage/' . $this->image);
+        }
+        
+        // Return a default category icon if no image is set
+        return 'https://placehold.co/100x100?text=' . urlencode(substr($this->name, 0, 2));
     }
 }
