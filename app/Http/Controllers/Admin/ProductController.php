@@ -19,6 +19,16 @@ class ProductController extends Controller
     {
         $query = Product::with('category');
         
+        // Handle search
+        if (request('search')) {
+            $search = request('search');
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'LIKE', "%{$search}%")
+                  ->orWhere('sku', 'LIKE', "%{$search}%")
+                  ->orWhere('description', 'LIKE', "%{$search}%");
+            });
+        }
+        
         // Handle filtering
         if (request('filter') === 'low-stock') {
             $query->where('stock', '<', 10)->where('stock', '>', 0);
@@ -26,7 +36,43 @@ class ProductController extends Controller
             $query->where('stock', 0);
         }
         
-        $products = $query->latest()->paginate(10);
+        // Handle sorting
+        $sort = request('sort', 'latest'); // Default sort
+        switch ($sort) {
+            case 'name':
+                $query->orderBy('name');
+                break;
+            case 'name_desc':
+                $query->orderBy('name', 'desc');
+                break;
+            case 'price':
+                $query->orderBy('price');
+                break;
+            case 'price_desc':
+                $query->orderBy('price', 'desc');
+                break;
+            case 'stock':
+                $query->orderBy('stock');
+                break;
+            case 'stock_desc':
+                $query->orderBy('stock', 'desc');
+                break;
+            case 'category':
+                $query->orderBy('category_id');
+                break;
+            case 'oldest':
+                $query->oldest();
+                break;
+            default: // latest
+                $query->latest();
+                break;
+        }
+        
+        // Handle pagination
+        $perPage = request('per_page', 10); // Default 10 items per page
+        $validPerPage = in_array($perPage, [5, 10, 25, 50, 100]) ? $perPage : 10;
+        
+        $products = $query->paginate($validPerPage)->appends(request()->query());
         
         return view('admin.products.index', compact('products'));
     }
