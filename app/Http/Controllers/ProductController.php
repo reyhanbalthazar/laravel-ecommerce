@@ -91,6 +91,15 @@ class ProductController extends Controller
         // Load images relationship for this product
         $product->load('images');
 
+        // Check if product is in user's wishlist (if authenticated)
+        $isInWishlist = false;
+        if (auth()->check()) {
+            $wishlist = auth()->user()->wishlist;
+            if ($wishlist) {
+                $isInWishlist = $wishlist->items()->where('product_id', $product->id)->exists();
+            }
+        }
+
         $relatedProducts = Product::with(['category', 'images']) // Add images for related products
             ->where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
@@ -99,6 +108,6 @@ class ProductController extends Controller
             ->limit(4)
             ->get();
 
-        return view('products.show', compact('product', 'relatedProducts'));
+        return view('products.show', compact('product', 'relatedProducts', 'isInWishlist'));
     }
 }

@@ -183,6 +183,20 @@
                 </button>
                 @endif
 
+                <!-- Add to Wishlist Button -->
+                @auth
+                <div class="mb-6">
+                    <button id="wishlist-button"
+                            class="w-full bg-{{ $isInWishlist ? 'red-100 text-red-600' : 'gray-200 text-gray-800' }} py-3 px-6 rounded-lg hover:bg-{{ $isInWishlist ? 'red-200' : 'gray-300' }} transition duration-300 font-semibold text-lg flex items-center justify-center"
+                            onclick="toggleWishlist({{ $product->id }})">
+                        <svg id="wishlist-icon" class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $isInWishlist ? 'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z' : 'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z' }}"></path>
+                        </svg>
+                        <span id="wishlist-text">{{ $isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist' }}</span>
+                    </button>
+                </div>
+                @endauth
+
                 <!-- Product Features -->
                 <div class="border-t border-gray-200 pt-6">
                     <h3 class="text-lg font-semibold text-gray-800 mb-3">Product Details</h3>
@@ -339,8 +353,6 @@
         document.getElementById('success-popup').classList.add('hidden');
     }
 
-
-
     // Close popup when clicking outside
     document.getElementById('success-popup').addEventListener('click', function(e) {
         if (e.target === this) {
@@ -353,6 +365,107 @@
         if (e.key === 'Escape') {
             hidePopup();
         }
+    });
+
+    // Wishlist AJAX functions
+    async function toggleWishlist(productId) {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        
+        try {
+            const response = await fetch(`/wishlist/toggle/${productId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                }
+            });
+
+            const contentType = response.headers.get('content-type');
+            
+            // Check if we're getting a redirect/html response instead of JSON
+            if (!contentType || !contentType.includes('application/json')) {
+                // If HTML is returned, it's likely a redirect to login
+                if (response.redirected || response.status === 302) {
+                    window.location.href = '/login';
+                } else {
+                    // If we got HTML but no redirect, try to read it for debugging
+                    const responseText = await response.text();
+                    console.error('Expected JSON but got HTML response:', responseText.substring(0, 200));
+                    window.location.href = '/login';
+                }
+                return;
+            }
+            
+            const result = await response.json();
+
+            // Check if the response indicates an authentication issue
+            if (!result.success && result.redirect) {
+                window.location.href = result.redirect;
+                return;
+            }
+
+            if (result.success) {
+                updateWishlistButton(result.in_wishlist);
+                
+                // Show a temporary message
+                const wishlistText = document.getElementById('wishlist-text');
+                wishlistText.textContent = result.message;
+                
+                // Reset the text after 2 seconds
+                setTimeout(() => {
+                    wishlistText.textContent = result.in_wishlist ? 'Remove from Wishlist' : 'Add to Wishlist';
+                }, 2000);
+                
+                // Update wishlist count in header if exists
+                updateWishlistCount();
+            }
+        } catch (error) {
+            console.error('Error toggling wishlist:', error);
+        }
+    }
+
+    function updateWishlistButton(inWishlist) {
+        const wishlistIcon = document.getElementById('wishlist-icon');
+        const wishlistText = document.getElementById('wishlist-text');
+        const wishlistButton = document.getElementById('wishlist-button');
+        
+        if (inWishlist) {
+            // Product is in wishlist - change to filled heart
+            wishlistIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>';
+            wishlistIcon.parentElement.classList.remove('bg-gray-200', 'text-gray-800');
+            wishlistIcon.parentElement.classList.add('bg-red-100', 'text-red-600');
+            wishlistText.textContent = 'Remove from Wishlist';
+        } else {
+            // Product is not in wishlist - change to outline heart
+            wishlistIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>';
+            wishlistIcon.parentElement.classList.remove('bg-red-100', 'text-red-600');
+            wishlistIcon.parentElement.classList.add('bg-gray-200', 'text-gray-800');
+            wishlistText.textContent = 'Add to Wishlist';
+        }
+    }
+
+    async function updateWishlistCount() {
+        try {
+            const response = await fetch('/wishlist/count');
+            const result = await response.json();
+            
+            // Update the wishlist count in the header if exists
+            const wishlistCountElement = document.querySelector('.wishlist-count');
+            if (wishlistCountElement) {
+                wishlistCountElement.textContent = result.count;
+                wishlistCountElement.style.display = result.count > 0 ? 'inline' : 'none';
+            }
+        } catch (error) {
+            console.error('Error updating wishlist count:', error);
+        }
+    }
+
+    // Initialize button state based on server-rendered content
+    document.addEventListener('DOMContentLoaded', function() {
+        // Update the wishlist count
+        updateWishlistCount();
     });
 </script>
 @if (session('success'))

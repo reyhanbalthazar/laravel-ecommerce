@@ -6,6 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Laravel Store - @yield('title')</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -19,10 +20,16 @@
                 @auth
                 <span class="text-gray-600">Welcome, {{ auth()->user()->name }}</span>
                 <a href="/orders" class="text-gray-600 hover:text-gray-900">My Orders</a>
+                <a href="/wishlist" class="text-gray-600 hover:text-gray-900 relative">
+                    <i class="fas fa-heart"></i>
+                    <!-- <span class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 text-[8px] flex items-center justify-center wishlist-count font-bold" style="min-width: 1rem; line-height: 1;">
+                        0
+                    </span> -->
+                </a>
                 <a href="/products" class="text-gray-600 hover:text-gray-900">Products</a>
                 <a href="/cart" class="text-gray-600 hover:text-gray-900 relative">
                     <i class="fas fa-shopping-cart"></i>
-                    <span class="absolute -top-2 -right-2 bg-blue-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center cart-count">
+                    <span class="absolute -top-1 -right-1 bg-blue-500 text-white rounded-full w-4 h-4 text-[8px] flex items-center justify-center cart-count font-bold" style="min-width: 1rem; line-height: 1;">
                         {{ array_sum(array_column(session('cart', []), 'quantity')) }}
                     </span>
                 </a>
@@ -96,11 +103,50 @@
                 });
         }
 
-        // Initialize cart count on page load (only for logged-in users)
+        // Update wishlist count (only for logged-in users)
+        async function updateWishlistCount() {
+            try {
+                const response = await fetch('{{ route("wishlist.count") }}', {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                
+                const contentType = response.headers.get('content-type');
+                
+                // Check if we're getting a redirect/html response instead of JSON
+                if (!contentType || !contentType.includes('application/json')) {
+                    // If HTML is returned, redirect to login
+                    window.location.href = '/login';
+                    return;
+                }
+                
+                const data = await response.json();
+                
+                // Check if the response indicates an authentication issue
+                if (!data.success && data.redirect) {
+                    window.location.href = data.redirect;
+                    return;
+                }
+                
+                document.querySelectorAll('.wishlist-count').forEach(el => {
+                    el.textContent = data.count;
+                    el.style.display = data.count > 0 ? 'inline' : 'none';
+                });
+            } catch (error) {
+                console.error('Error updating wishlist count:', error);
+            }
+        }
+
+        // Initialize counts on page load (only for logged-in users)
     </script>
     @auth
     <script>
-        document.addEventListener('DOMContentLoaded', updateCartCount);
+        document.addEventListener('DOMContentLoaded', function() {
+            updateCartCount();
+            updateWishlistCount();
+        });
     </script>
     @endauth
 

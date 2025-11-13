@@ -189,19 +189,31 @@
                 <p class="text-sm text-gray-500">{{ Str::limit($product->description, 100) }}</p>
             </a>
 
-            <!-- Add to Cart Button -->
-            @auth
-            <form action="{{ route('cart.add', $product) }}" method="POST">
-                @csrf
-                <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition duration-300">
-                    Add to Cart
-                </button>
-            </form>
-            @else
-            <a href="{{ route('login') }}" class="block w-full bg-gray-500 text-white py-2 rounded hover:bg-gray-600 transition duration-300 text-center">
-                Login to Purchase
-            </a>
-            @endauth
+            <!-- Action Buttons -->
+            <div class="flex space-x-2">
+                <!-- Add to Cart Button -->
+                @auth
+                <form action="{{ route('cart.add', $product) }}" method="POST" class="flex-1">
+                    @csrf
+                    <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition duration-300">
+                        Add to Cart
+                    </button>
+                </form>
+                
+                <!-- Add to Wishlist Button -->
+                <!-- <button onclick="toggleWishlist({{ $product->id }})" 
+                        class="w-10 h-10 bg-gray-200 rounded hover:bg-gray-300 transition duration-300 flex items-center justify-center"
+                        title="Add to Wishlist">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                    </svg>
+                </button> -->
+                @else
+                <a href="{{ route('login') }}" class="block w-full bg-gray-500 text-white py-2 rounded hover:bg-gray-600 transition duration-300 text-center flex-1">
+                    Login to Purchase
+                </a>
+                @endauth
+            </div>
         </div>
         @endforeach
     </div>
@@ -256,5 +268,82 @@
     document.getElementById('category').addEventListener('change', function() {
         this.form.submit();
     });
+
+    // Wishlist AJAX functions
+    async function toggleWishlist(productId) {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        
+        try {
+            const response = await fetch(`/wishlist/toggle/${productId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                }
+            });
+
+            const contentType = response.headers.get('content-type');
+            
+            // Check if we're getting a redirect/html response instead of JSON
+            if (!contentType || !contentType.includes('application/json')) {
+                // If HTML is returned, it's likely a redirect to login
+                if (response.redirected || response.status === 302) {
+                    window.location.href = '/login';
+                } else {
+                    // If we got HTML but no redirect, try to read it for debugging
+                    const responseText = await response.text();
+                    console.error('Expected JSON but got HTML response:', responseText.substring(0, 200));
+                    window.location.href = '/login';
+                }
+                return;
+            }
+            
+            const result = await response.json();
+
+            // Check if the response indicates an authentication issue
+            if (!result.success && result.redirect) {
+                window.location.href = result.redirect;
+                return;
+            }
+
+            if (result.success) {
+                // Show a temporary message
+                const button = event.target.closest('button');
+                const originalHTML = button.innerHTML;
+                
+                button.innerHTML = result.message;
+                button.disabled = true;
+                
+                // Reset the button after 1.5 seconds
+                setTimeout(() => {
+                    button.innerHTML = originalHTML;
+                    button.disabled = false;
+                }, 1500);
+                
+                // Update wishlist count in header if exists
+                updateWishlistCount();
+            }
+        } catch (error) {
+            console.error('Error toggling wishlist:', error);
+        }
+    }
+
+    async function updateWishlistCount() {
+        try {
+            const response = await fetch('/wishlist/count');
+            const result = await response.json();
+            
+            // Update the wishlist count in the header if exists
+            const wishlistCountElement = document.querySelector('.wishlist-count');
+            if (wishlistCountElement) {
+                wishlistCountElement.textContent = result.count;
+                wishlistCountElement.style.display = result.count > 0 ? 'inline' : 'none';
+            }
+        } catch (error) {
+            console.error('Error updating wishlist count:', error);
+        }
+    }
 </script>
 @endsection

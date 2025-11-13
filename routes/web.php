@@ -10,6 +10,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\PaymentWebhookController;
 use App\Http\Controllers\MockPaymentController;
+use App\Http\Controllers\WishlistController;
 // Add these Admin controller imports
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
@@ -40,19 +41,29 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/cart/remove/{productId}', [CartController::class, 'remove'])->name('cart.remove');
     Route::post('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
 
+    // Wishlist Routes (protected)
+    Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist.index');
+    Route::post('/wishlist/add/{productId}', [WishlistController::class, 'add'])->name('wishlist.add');
+    Route::post('/wishlist/remove/{productId}', [WishlistController::class, 'remove'])->name('wishlist.remove');
+    Route::delete('/wishlist/clear', [WishlistController::class, 'clear'])->name('wishlist.clear');
+
     // Checkout and Order Routes (protected)
     Route::get('/checkout', [CheckoutController::class, 'show'])->name('checkout.show');
     Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
-    
+
     // Order detail and payment routes (protected)
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
     Route::get('/orders/{order}/payment-status', [PaymentWebhookController::class, 'checkPaymentStatus'])->name('orders.payment-status');
-    
+
     // Mock payment routes for simulating third-party payment gateway
     Route::get('/payment/{order}/mock', [MockPaymentController::class, 'show'])->name('payment.mock');
     Route::post('/payment/{order}/mark-paid', [MockPaymentController::class, 'markAsPaid'])->name('payment.mark.paid');
     Route::get('/payment/{order}/status', [MockPaymentController::class, 'checkPaymentStatus'])->name('payment.status');
+    
+    // AJAX Wishlist Routes
+    Route::post('/wishlist/toggle/{productId}', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
+    Route::get('/wishlist/count', [WishlistController::class, 'count'])->name('wishlist.count');
 });
 
 // Admin Routes (Protected and Admin Only)
