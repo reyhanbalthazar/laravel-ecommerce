@@ -59,6 +59,45 @@
     </div>
 </div>
 
+<!-- Inventory Stats Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+            <div class="p-3 bg-red-100 rounded-lg">
+                <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-sm font-medium text-gray-600">Low Stock Items</p>
+                <p class="text-2xl font-semibold text-gray-800">{{ $stats['low_stock_products'] }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+            <div class="p-3 bg-orange-100 rounded-lg">
+                <i class="fas fa-times-circle text-orange-600 text-xl"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-sm font-medium text-gray-600">Out of Stock</p>
+                <p class="text-2xl font-semibold text-gray-800">{{ $stats['out_of_stock_products'] }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+            <div class="p-3 bg-teal-100 rounded-lg">
+                <i class="fas fa-wallet text-teal-600 text-xl"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-sm font-medium text-gray-600">Inventory Value</p>
+                <p class="text-2xl font-semibold text-gray-800">${{ number_format($stats['total_inventory_value'], 2) }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
     <!-- Recent Orders -->
     <div class="bg-white rounded-lg shadow">

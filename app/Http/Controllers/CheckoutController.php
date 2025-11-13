@@ -66,6 +66,19 @@ class CheckoutController extends Controller
         ]);
 
         try {
+            // Validate stock availability before creating order
+            foreach ($cart as $item) {
+                $product = \App\Models\Product::find($item['id']);
+                if (!$product) {
+                    return redirect()->back()->with('error', 'Product not found in cart.');
+                }
+                
+                if ($product->stock < $item['quantity']) {
+                    return redirect()->back()->with('error', 
+                        "Not enough stock for {$product->name}. Only {$product->stock} available.");
+                }
+            }
+
             // Calculate totals
             $subtotal = 0;
             foreach ($cart as $item) {

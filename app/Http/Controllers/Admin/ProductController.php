@@ -17,7 +17,17 @@ class ProductController extends Controller
 {
     public function index()
     {
-        $products = Product::with('category')->latest()->paginate(10);
+        $query = Product::with('category');
+        
+        // Handle filtering
+        if (request('filter') === 'low-stock') {
+            $query->where('stock', '<', 10)->where('stock', '>', 0);
+        } elseif (request('filter') === 'out-of-stock') {
+            $query->where('stock', 0);
+        }
+        
+        $products = $query->latest()->paginate(10);
+        
         return view('admin.products.index', compact('products'));
     }
 
@@ -245,5 +255,37 @@ class ProductController extends Controller
         }
 
         return $slug;
+    }
+    
+    /**
+     * Bulk update product stock
+     */
+    public function bulkStockUpdate(Request $request)
+    {
+        $request->validate([
+            'product_ids' => 'required|array',
+            'product_ids.*' => 'exists:products,id',
+            'stock_adjustment' => 'required|integer|min:0',
+            'action' => 'required|in:set,add'
+        ]);
+
+        $productIds = $request->product_ids;
+        $stockAdjustment = $request->stock_adjustment;
+        $action = $request->action;
+
+        foreach ($productIds as $productId) {
+            $product = Product::findOrFail($productId);
+            
+            if ($action === 'set') {
+                $product->stock = $stockAdjustment;
+            } elseif ($action === 'add') {
+                $product->stock += $stockAdjustment;
+            }
+            
+            $product->save();
+        }
+
+        return redirect()->back()->with('success', 
+            count($productIds) . ' products stock updated successfully!');
     }
 }

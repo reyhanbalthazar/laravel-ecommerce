@@ -42,6 +42,24 @@
 - [x] Cart Cleanup (removes invalid products)
 - [x] Cart Count Display
 
+## Wishlist Features
+- [x] Wishlist Model and Migration
+- [x] WishlistItem Model and Migration
+- [x] User-Wishlist Relationship
+- [x] Add Product to Wishlist
+- [x] Remove Product from Wishlist
+- [x] Toggle Product in Wishlist (AJAX)
+- [x] View Wishlist Items
+- [x] Clear Entire Wishlist
+- [x] Wishlist Count Display
+- [x] Add to Wishlist Button on Product Page
+- [x] Add to Wishlist Button on Product Listing
+- [x] Initial Wishlist State Check (Page Load)
+- [x] Wishlist Authentication Protection
+- [x] AJAX Wishlist Functionality
+- [x] Wishlist Page UI
+- [x] Responsive Wishlist Design
+
 ## Checkout Features
 - [x] Checkout Form with Shipping Details
 - [x] Order Creation

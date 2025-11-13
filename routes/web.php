@@ -82,6 +82,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::delete('/products/{id}/force', [AdminProductController::class, 'forceDestroy'])->name('products.forceDestroy');
     Route::post('/products/{product}/images/{image}/set-primary', [AdminProductController::class, 'setPrimaryImage'])
         ->name('products.images.set-primary');
+    Route::post('/products/bulk-stock-update', [AdminProductController::class, 'bulkStockUpdate'])
+        ->name('admin.products.bulk-stock-update');
 
     // Categories - Note: Using AdminCategoryController alias to avoid conflict
     Route::get('/categories', [AdminCategoryController::class, 'index'])->name('categories.index');

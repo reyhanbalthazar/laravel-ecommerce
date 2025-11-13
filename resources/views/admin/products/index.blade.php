@@ -21,6 +21,28 @@
             {{ session('success') }}
         </div>
     @endif
+    
+    <!-- Filter Section -->
+    <div class="flex flex-wrap items-center justify-between mb-6 p-4 bg-gray-50 rounded-lg">
+        <div class="flex space-x-2 mb-2 sm:mb-0">
+            <a href="{{ route('admin.products.index') }}" 
+               class="px-3 py-1 text-sm rounded {{ request('filter') == null ? 'bg-blue-500 text-white' : 'bg-white text-gray-700 border' }}">
+                All Products
+            </a>
+            <a href="{{ route('admin.products.index', ['filter' => 'low-stock']) }}" 
+               class="px-3 py-1 text-sm rounded {{ request('filter') == 'low-stock' ? 'bg-yellow-500 text-white' : 'bg-white text-gray-700 border' }}">
+                Low Stock (<10)
+            </a>
+            <a href="{{ route('admin.products.index', ['filter' => 'out-of-stock']) }}" 
+               class="px-3 py-1 text-sm rounded {{ request('filter') == 'out-of-stock' ? 'bg-red-500 text-white' : 'bg-white text-gray-700 border' }}">
+                Out of Stock
+            </a>
+        </div>
+        
+        <div class="text-sm text-gray-600">
+            Showing {{ $products->firstItem() }} to {{ $products->lastItem() }} of {{ $products->total() }} products
+        </div>
+    </div>
 
     <div class="bg-white shadow-md rounded-lg overflow-hidden">
         <table class="min-w-full divide-y divide-gray-200">
@@ -50,8 +72,19 @@
                                 <span class="text-red-600 text-xs ml-1">(On Sale: ${{ number_format($product->sale_price, 2) }})</span>
                             @endif
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {{ $product->stock }}
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            @if($product->stock < 10)
+                                <span class="font-bold {{ $product->stock == 0 ? 'text-red-600' : 'text-orange-500' }}">
+                                    {{ $product->stock }}
+                                    @if($product->stock == 0)
+                                        <i class="fas fa-exclamation-circle ml-1 text-red-500" title="Out of Stock"></i>
+                                    @else
+                                        <i class="fas fa-exclamation-triangle ml-1 text-orange-500" title="Low Stock"></i>
+                                    @endif
+                                </span>
+                            @else
+                                <span class="text-gray-500">{{ $product->stock }}</span>
+                            @endif
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 

@@ -22,11 +22,31 @@ class DashboardController extends Controller
             'processing_orders' => Order::processing()->count(),
             'completed_orders' => Order::completed()->count(),
             'low_stock_products' => Product::where('stock', '<', 10)->count(),
+            'out_of_stock_products' => Product::where('stock', 0)->count(),
+            'total_inventory_value' => Product::sum(\DB::raw('price * stock')),
         ];
 
         $recentOrders = Order::with('user')->latest()->take(5)->get();
         $recentProducts = Product::with('category')->latest()->take(5)->get();
+        
+        // Get products with low stock for the dashboard
+        $lowStockProducts = Product::where('stock', '<', 10)
+            ->where('stock', '>', 0)
+            ->orderBy('stock')
+            ->with('category')
+            ->get();
+        
+        // Get out of stock products
+        $outOfStockProducts = Product::where('stock', 0)
+            ->with('category')
+            ->get();
 
-        return view('admin.dashboard', compact('stats', 'recentOrders', 'recentProducts'));
+        return view('admin.dashboard', compact(
+            'stats', 
+            'recentOrders', 
+            'recentProducts',
+            'lowStockProducts',
+            'outOfStockProducts'
+        ));
     }
 }

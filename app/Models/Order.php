@@ -27,6 +27,41 @@ class Order extends Model
         'customer_note'
     ];
 
+    protected static function booted()
+    {
+        static::updating(function ($order) {
+            // Check if status is changing from pending to processing or completed
+            if (($order->getOriginal('status') === 'pending' && 
+                 in_array($order->status, ['processing', 'completed'])) ||
+                ($order->getOriginal('status') === 'pending' && 
+                 $order->getOriginal('payment_status') !== 'paid' && 
+                 $order->payment_status === 'paid')) {
+                
+                // Reduce stock for each order item
+                foreach ($order->items as $item) {
+                    $product = $item->product;
+                    if ($product) {
+                        $product->decrement('stock', $item->quantity);
+                    }
+                }
+            }
+            
+            // Check if status is changing from processing/completed back to pending/cancelled
+            // (Restocking items if order status is reversed)
+            if (in_array($order->getOriginal('status'), ['processing', 'completed']) && 
+                in_array($order->status, ['pending', 'cancelled'])) {
+                
+                // Increase stock for each order item
+                foreach ($order->items as $item) {
+                    $product = $item->product;
+                    if ($product) {
+                        $product->increment('stock', $item->quantity);
+                    }
+                }
+            }
+        });
+    }
+
     protected $casts = [
         'subtotal' => 'decimal:2',
         'tax' => 'decimal:2',
