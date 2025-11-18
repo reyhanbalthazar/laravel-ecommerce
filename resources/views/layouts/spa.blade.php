@@ -1,7 +1,5 @@
-<!-- resources/views/layouts/app.blade.php -->
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,46 +8,50 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     @livewireStyles
+    @stack('styles')
 </head>
-
 <body class="bg-gray-50">
     <!-- Navigation -->
     <nav class="bg-white shadow py-4">
         <div class="max-w-6xl mx-auto px-4 flex justify-between items-center">
-            <a href="/" class="text-xl font-bold" wire:navigate>LaravelStore</a>
+            <button wire:click="navigateTo('home')" class="text-xl font-bold text-blue-600 hover:text-blue-800 cursor-pointer">LaravelStore</button>
             <div class="flex items-center space-x-4">
                 @auth
                 <span class="text-gray-600">Welcome, {{ auth()->user()->name }}</span>
-                <a href="/orders" class="text-gray-600 hover:text-gray-900" wire:navigate>My Orders</a>
-                <a href="/wishlist" class="text-gray-600 hover:text-gray-900 relative" wire:navigate>
+                <button wire:click="navigateTo('orders.index')" class="text-gray-600 hover:text-gray-900 cursor-pointer">My Orders</button>
+                <button wire:click="navigateTo('wishlist.index')" class="text-gray-600 hover:text-gray-900 relative cursor-pointer">
                     <i class="fas fa-heart"></i>
                     <!-- <span class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 text-[8px] flex items-center justify-center wishlist-count font-bold" style="min-width: 1rem; line-height: 1;">
                         0
                     </span> -->
-                </a>
-                <a href="/products" class="text-gray-600 hover:text-gray-900" wire:navigate>Products</a>
-                <a href="/cart" class="text-gray-600 hover:text-gray-900 relative" wire:navigate>
+                </button>
+                <button wire:click="navigateTo('products.index')" class="text-gray-600 hover:text-gray-900 cursor-pointer">Products</button>
+                <button wire:click="navigateTo('cart.index')" class="text-gray-600 hover:text-gray-900 relative cursor-pointer">
                     <i class="fas fa-shopping-cart"></i>
                     <span class="absolute -top-1 -right-1 bg-blue-500 text-white rounded-full w-4 h-4 text-[8px] flex items-center justify-center cart-count font-bold" style="min-width: 1rem; line-height: 1;">
                         {{ array_sum(array_column(session('cart', []), 'quantity')) }}
                     </span>
-                </a>
+                </button>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit" class="text-gray-600 hover:text-gray-900">Logout</button>
                 </form>
                 @else
-                <a href="/products" class="text-gray-600 hover:text-gray-900" wire:navigate>Products</a>
-                <a href="{{ route('login') }}" class="text-gray-600 hover:text-gray-900" wire:navigate>Login</a>
-                <a href="{{ route('register') }}" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600" wire:navigate>Register</a>
+                <button wire:click="navigateTo('products.index')" class="text-gray-600 hover:text-gray-900 cursor-pointer">Products</button>
+                <a href="{{ route('login') }}" class="text-gray-600 hover:text-gray-900">Login</a>
+                <a href="{{ route('register') }}" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Register</a>
                 @endauth
             </div>
         </div>
     </nav>
 
-    <!-- Main Content -->
+    <!-- Main Content - SPA content will be loaded here -->
     <main>
         @yield('content')
+        <div id="main-content">
+            <!-- Livewire SPA component will be loaded here -->
+            @livewire('spa.app')
+        </div>
     </main>
 
     <!-- Footer -->
@@ -92,7 +94,7 @@
     </footer>
 
     @livewireScripts
-    <!-- Scripts -->
+    @stack('scripts')
     <script>
         // Update cart count (only for logged-in users)
         function updateCartCount() {
@@ -142,17 +144,12 @@
         }
 
         // Initialize counts on page load (only for logged-in users)
-    </script>
-    @auth
-    <script>
+        @auth
         document.addEventListener('DOMContentLoaded', function() {
             updateCartCount();
             updateWishlistCount();
         });
+        @endauth
     </script>
-    @endauth
-
-    @stack('scripts')
 </body>
-
 </html>

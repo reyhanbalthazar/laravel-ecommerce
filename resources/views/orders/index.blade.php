@@ -1,46 +1,9 @@
 <!-- resources/views/orders/index.blade.php -->
-<!DOCTYPE html>
-<html lang="en">
+@extends('layouts.app')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Orders - Laravel Store</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
+@section('title', 'Home - LaravelStore')
 
-<body class="bg-gray-100">
-    <nav class="bg-white shadow py-4">
-        <div class="max-w-6xl mx-auto px-4 flex justify-between items-center">
-            <a href="/" class="text-xl font-bold">LaravelStore</a>
-            <div class="flex items-center space-x-4">
-                @auth
-                <span class="text-gray-600">Welcome, {{ auth()->user()->name }}</span>
-                <a href="/orders" class="text-gray-600 hover:text-gray-900">My Orders</a>
-                <a href="/products" class="text-gray-600 hover:text-gray-900">Products</a>
-                <a href="/cart" class="text-gray-600 hover:text-gray-900">Cart
-                    <span class="bg-blue-500 text-white rounded-full px-2 py-1 text-xs">
-                        {{ array_sum(array_column(session('cart', []), 'quantity')) }}
-                    </span>
-                </a>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit" class="text-gray-600 hover:text-gray-900">Logout</button>
-                </form>
-                @else
-                <a href="/products" class="text-gray-600 hover:text-gray-900">Products</a>
-                <a href="/cart" class="text-gray-600 hover:text-gray-900">Cart
-                    <span class="bg-blue-500 text-white rounded-full px-2 py-1 text-xs">
-                        {{ array_sum(array_column(session('cart', []), 'quantity')) }}
-                    </span>
-                </a>
-                <a href="{{ route('login') }}" class="text-gray-600 hover:text-gray-900">Login</a>
-                <a href="{{ route('register') }}" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Register</a>
-                @endauth
-            </div>
-        </div>
-    </nav>
-
+@section('content')
     <div class="max-w-6xl mx-auto py-8 px-4">
         <h1 class="text-3xl font-bold mb-2">My Orders</h1>
         <p class="text-gray-600 mb-8">View your order history and track your purchases.</p>
@@ -125,6 +88,4 @@
         </div>
         @endif
     </div>
-</body>
-
-</html>
+@endsection

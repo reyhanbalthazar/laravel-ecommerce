@@ -25,6 +25,11 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
 Route::post('/register', [RegisterController::class, 'register']);
 
+// SPA Route - This will handle our single page application
+Route::get('/spa', function () {
+    return view('layouts.spa');
+})->name('spa');
+
 // Public Routes
 Route::get('/', [ProductController::class, 'home'])->name('home');
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
@@ -60,7 +65,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/payment/{order}/mock', [MockPaymentController::class, 'show'])->name('payment.mock');
     Route::post('/payment/{order}/mark-paid', [MockPaymentController::class, 'markAsPaid'])->name('payment.mark.paid');
     Route::get('/payment/{order}/status', [MockPaymentController::class, 'checkPaymentStatus'])->name('payment.status');
-    
+
     // AJAX Wishlist Routes
     Route::post('/wishlist/toggle/{productId}', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
     Route::get('/wishlist/count', [WishlistController::class, 'count'])->name('wishlist.count');

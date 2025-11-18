@@ -18,7 +18,11 @@ class OrderController extends Controller
             abort(403, 'Unauthorized to access this order');
         }
 
-        $order->load('items.product');
+        $order->load(['items' => function($query) {
+            $query->with(['product' => function($productQuery) {
+                $productQuery->with(['primaryImage', 'images']);
+            }]);
+        }]);
 
         return view('orders.show', compact('order'));
     }
@@ -31,7 +35,11 @@ class OrderController extends Controller
         }
 
         $orders = Order::where('user_id', auth()->id())
-            ->with('items.product')
+            ->with(['items' => function($query) {
+                $query->with(['product' => function($productQuery) {
+                    $productQuery->with(['primaryImage', 'images']);
+                }]);
+            }])
             ->latest()
             ->paginate(10);
 

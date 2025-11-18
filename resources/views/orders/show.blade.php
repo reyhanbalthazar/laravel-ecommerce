@@ -1,24 +1,9 @@
 <!-- resources/views/orders/show.blade.php -->
-<!DOCTYPE html>
-<html lang="en">
+@extends('layouts.app')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Order Confirmation - Laravel Store</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
+@section('title', 'Home - LaravelStore')
 
-<body class="bg-gray-100">
-    <nav class="bg-white shadow py-4">
-        <div class="max-w-6xl mx-auto px-4 flex justify-between items-center">
-            <a href="/" class="text-xl font-bold">LaravelStore</a>
-            <div class="flex space-x-4">
-                <a href="/products" class="text-gray-600 hover:text-gray-900">Products</a>
-                <a href="/cart" class="text-gray-600 hover:text-gray-900">Cart</a>
-            </div>
-        </div>
-    </nav>
+@section('content')
 
     <div class="max-w-4xl mx-auto py-8 px-4">
         @if(session('success'))
@@ -163,7 +148,11 @@
                         <div class="flex items-center justify-between border-b pb-4">
                             <div class="flex items-center space-x-4">
                                 <div class="w-16 h-16 bg-gray-100 rounded flex items-center justify-center">
-                                    @if($item->product->image)
+                                    @if($item->product->primaryImage)
+                                    <img src="{{ asset('storage/' . $item->product->primaryImage->image_path) }}" alt="{{ $item->product->name }}" class="max-h-12 max-w-full object-contain">
+                                    @elseif($item->product->images->first())
+                                    <img src="{{ asset('storage/' . $item->product->images->first()->image_path) }}" alt="{{ $item->product->name }}" class="max-h-12 max-w-full object-contain">
+                                    @elseif($item->product->image)
                                     <img src="{{ asset('storage/' . $item->product->image) }}" alt="{{ $item->product->name }}" class="max-h-12 max-w-full object-contain">
                                     @else
                                     <span class="text-gray-400 text-xs">IMG</span>
@@ -262,6 +251,4 @@
             @endif
         </div>
     </div>
-</body>
-
-</html>
+@endsection
