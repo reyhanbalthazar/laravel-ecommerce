@@ -36,7 +36,8 @@
                         @endphp
                         <img src="{{ asset('storage/' . $primaryImage->image_path) }}"
                             alt="{{ $product->name }}"
-                            class="w-full h-full object-cover hover:scale-105 transition duration-300">
+                            class="w-full h-full object-cover hover:scale-105 transition duration-300"
+                            loading="lazy">
                         @else
                         <div class="text-center text-gray-400">
                             <svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -123,7 +124,8 @@
                         @endphp
                         <img src="{{ asset('storage/' . $primaryImage->image_path) }}"
                             alt="{{ $product->name }}"
-                            class="w-full h-full object-cover hover:scale-105 transition duration-300">
+                            class="w-full h-full object-cover hover:scale-105 transition duration-300"
+                            loading="lazy">
                         @else
                         <div class="text-center text-gray-400">
                             <svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
