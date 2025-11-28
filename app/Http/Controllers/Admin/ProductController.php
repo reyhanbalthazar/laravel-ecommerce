@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Spatie\LaravelImageOptimizer\Facades\ImageOptimizer;
 
 
 class ProductController extends Controller
@@ -222,6 +223,12 @@ class ProductController extends Controller
         foreach ($images as $index => $image) {
             $filename = 'product_' . $product->id . '_' . time() . '_' . $index . '.' . $image->getClientOriginalExtension();
             $path = $image->storeAs('products', $filename, 'public');
+
+            // Optimize the uploaded image
+            $fullPath = storage_path('app/public/' . $path);
+            if (file_exists($fullPath)) {
+                ImageOptimizer::optimize($fullPath);
+            }
 
             ProductImage::create([
                 'product_id' => $product->id,

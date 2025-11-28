@@ -8,6 +8,7 @@ use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Spatie\LaravelImageOptimizer\Facades\ImageOptimizer;
 
 class CategoryController extends Controller
 {
@@ -36,6 +37,13 @@ class CategoryController extends Controller
         // Handle image upload if provided
         if ($request->hasFile('image')) {
             $imagePath = $request->file('image')->store('categories', 'public');
+
+            // Optimize the uploaded image
+            $fullPath = storage_path('app/public/' . $imagePath);
+            if (file_exists($fullPath)) {
+                ImageOptimizer::optimize($fullPath);
+            }
+
             $validated['image'] = $imagePath;
         }
 
@@ -74,8 +82,15 @@ class CategoryController extends Controller
             if ($category->image && !$request->has('remove_image')) {
                 Storage::disk('public')->delete($category->image);
             }
-            
+
             $imagePath = $request->file('image')->store('categories', 'public');
+
+            // Optimize the uploaded image
+            $fullPath = storage_path('app/public/' . $imagePath);
+            if (file_exists($fullPath)) {
+                ImageOptimizer::optimize($fullPath);
+            }
+
             $validated['image'] = $imagePath;
         }
 
